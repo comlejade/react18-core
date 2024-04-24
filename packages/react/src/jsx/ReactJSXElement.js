@@ -30,20 +30,21 @@ export function jsxDEV(type, config, maybekey) {
   const props = {};
   let key = null;
   let ref = null;
+  let propName;
 
   if (typeof maybekey !== "undefined") {
     key = maybekey;
   }
 
   if (hasValidKey(config)) {
-    key = "" + config.value;
+    key = "" + config.key;
   }
 
   if (hasValidRef(config)) {
     ref = config.ref;
   }
 
-  for (let propName in config) {
+  for (propName in config) {
     if (
       hasOwnProperty.call(config, propName) &&
       !RESERVED_PROPS.hasOwnProperty(propName)

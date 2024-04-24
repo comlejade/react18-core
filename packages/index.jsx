@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-debugger
+// debugger
 let element = <div>
     <div>课程名称：手写React高质量源码迈向高阶开发</div>
     <div>讲师：杨艺韬</div>
@@ -7,4 +7,5 @@ let element = <div>
 </div>
 const root = createRoot(document.getElementById('root'))
 root.render(element)
+console.log(element)
 // console.log("index.jsx", element);

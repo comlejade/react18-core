@@ -1,6 +1,9 @@
 import assign from "shared/assign";
 import { markUpdateLaneFromFiberToRoot } from "./ReactFiberConcurrentUpdates";
+// 定义状态更新的类型标签
+export const UpdateState = 0;
 
+// 初始化fiber节点的更新队列
 export function initialUpdateQueue(fiber) {
   const queue = {
     shared: {
@@ -10,18 +13,20 @@ export function initialUpdateQueue(fiber) {
   fiber.updateQueue = queue;
 }
 
+// 创建一个状态更新对象
 export function createUpdate() {
-  const update = {};
+  const update = { tag: UpdateState };
 
   return update;
 }
 
+// 将更新对象添加到fiber节点的更新队列中
 export function enqueueUpdate(fiber, update) {
   const updateQueue = fiber.updateQueue;
   const pending = updateQueue.shared.pending;
   // 这里维护的是一个update的单向循环链表
   // 设计成环形链表是为了处理优先级的问题
-  if (pending == null) {
+  if (pending === null) {
     update.next = update;
   } else {
     update.next = pending.next;
@@ -34,6 +39,7 @@ export function enqueueUpdate(fiber, update) {
   return markUpdateLaneFromFiberToRoot(fiber);
 }
 
+// 根据老状态和更新队列中的更新计算最新的状态
 export function processUpdateQueue(workInProgress) {
   const queue = workInProgress.updateQueue;
   // queue.shared.pending 指向 update 循环链表中的最后一个update
@@ -55,11 +61,14 @@ export function processUpdateQueue(workInProgress) {
     }
     // 更新好state之后，再重新赋值给 memoizedState，缓存起来
     workInProgress.memoizedState = newState;
-  } else {
   }
 }
 
+// 根据老的状态和更新对象计算新状态
 function getStateFromUpdate(update, prevState) {
-  const { payload } = update;
-  return assign({}, prevState, payload);
+  switch (update.tag) {
+    case UpdateState:
+      const { payload } = update;
+      return assign({}, prevState, payload);
+  }
 }
