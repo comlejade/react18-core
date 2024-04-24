@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "target": "ESNext",
+        "moduleResolution": "Node",
+        "baseUrl": "packages",
+        "paths": {
+            "react/*": ["react/*"],
+            "react-dom/*": ["react-dom/*"],
+            "react-dom-bindings/*": ["react-dom-bindings/*"],
+            "react-reconciler/*": ["react-reconciler/*"],
+            "scheduler/*": ["scheduler/*"],
+            "shared/*": ["shared/*"]
+        }
+    },
+    "exclude": ["node_modules"]
+}
