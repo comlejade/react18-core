@@ -1,62 +1,89 @@
-import { scheduleCallback } from "scheduler/index";
+import { scheduleCallback } from "scheduler";
 import { createWorkInProgress } from "./ReactFiber";
 import { beginWork } from "./ReactFiberBeginWork";
 import { completeWork } from "./ReactFiberCompleteWork";
-import { MutationMask, NoFlags } from "./ReactFiberFlags";
+import { NoFlags, MutationMask } from "./ReactFiberFlags";
 import { commitMutationEffectsOnFiber } from "./ReactFiberCommitWork";
 
 let workInProgress = null;
 
-// 开始调度 Fiber 更新
+/**
+ * 在 Fiber 上计划更新根节点。
+ * @param {*} root - 根节点。
+ */
 export function scheduleUpdateOnFiber(root) {
-  // root 是 FiberRoot
   ensureRootIsScheduled(root);
 }
 
+/**
+ * 确保根节点被调度执行。
+ * @param {*} root - 根节点。
+ */
 function ensureRootIsScheduled(root) {
-  // 在浏览器的空余时间执行
   scheduleCallback(performConcurrentWorkOnRoot.bind(null, root));
 }
 
-// 执行根节点的并发工作
+/**
+ * 执行根节点上的并发工作。
+ * @param {*} root - 根节点。
+ */
 function performConcurrentWorkOnRoot(root) {
-  // 处理同步渲染
   renderRootSync(root);
-  root.finishedWork = root.current.alternate;
+  const finishedWork = root.current.alternate;
+  root.finishedWork = finishedWork;
   commitRoot(root);
 }
 
-function renderRootSync(root) {
-  // root = FiberRoot
-  // 创建或更新 workInProgress 的Fiber树
-  prepareFreshStack(root);
-  // 同步循环更新Fiber树
-  workLoopSync();
+/**
+ * 提交根节点。
+ * @param {*} root - 根节点。
+ */
+function commitRoot(root) {
+  const { finishedWork } = root;
+  const subtreeHasEffects =
+    (finishedWork.subtreeFlags & MutationMask) !== NoFlags;
+  const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
+
+  if (subtreeHasEffects || rootHasEffect) {
+    commitMutationEffectsOnFiber(finishedWork, root);
+  }
+
+  root.current = finishedWork;
 }
 
-// 准备一个新的工作栈
+/**
+ * 准备一个新的工作栈。
+ * @param {*} root - 根节点。
+ */
 function prepareFreshStack(root) {
-  // root = FiberRoot
-  // root.current = RootFiber
-  // 这里的 RootFiber 是页面上展示的 RootFiber
   workInProgress = createWorkInProgress(root.current, null);
 }
 
-// 同步渲染根节点
+/**
+ * 同步渲染根节点。
+ * @param {*} root - 根节点。
+ */
+function renderRootSync(root) {
+  prepareFreshStack(root);
+  workLoopSync();
+}
+
+/**
+ * 同步工作循环。
+ */
 function workLoopSync() {
-  while (workInProgress) {
-    // 遍历更新 workInProgress
-    // console.log("workInProgress", workInProgress);
+  while (workInProgress !== null) {
     performUnitOfWork(workInProgress);
   }
 }
 
-// 执行一个工作单元
+/**
+ * 执行一个工作单元。
+ * @param {*} unitOfWork - 工作单元。
+ */
 function performUnitOfWork(unitOfWork) {
   const current = unitOfWork.alternate;
-  // 处理完当前节点，返回它的子节点
   const next = beginWork(current, unitOfWork);
-  // console.log("next", next);
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
 
   if (next === null) {
@@ -66,39 +93,25 @@ function performUnitOfWork(unitOfWork) {
   }
 }
 
-// 完成一个工作单元
+/**
+ * 完成一个工作单元。
+ * @param {*} unitOfWork - 工作单元。
+ */
 function completeUnitOfWork(unitOfWork) {
   let completedWork = unitOfWork;
+
   do {
     const current = completedWork.alternate;
     const returnFiber = completedWork.return;
     completeWork(current, completedWork);
+
     const siblingFiber = completedWork.sibling;
     if (siblingFiber !== null) {
       workInProgress = siblingFiber;
       return;
     }
+
     completedWork = returnFiber;
-    // 下面这一行是实现循环的关键
     workInProgress = completedWork;
   } while (completedWork !== null);
-}
-
-// 提交根节点
-function commitRoot(root) {
-  const { finishedWork } = root;
-  // 子节点是否有副作用
-  const subtreeHasEffects =
-    (finishedWork.subtreeHasEffects & MutationMask) != NoFlags;
-
-  const rootHasEffect = (finishedWork.flags & MutationMask) != NoFlags;
-
-  if (subtreeHasEffects || rootHasEffect) {
-    commitMutationEffectsOnFiber(finishedWork, root);
-  }
-
-  // root 的current 的指向发生改变
-  // workInProgress 树变成了 current 树
-  // current 树变成了 workInProgress 树
-  root.current = finishedWork;
 }

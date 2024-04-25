@@ -1,4 +1,5 @@
-import { setInitialProperties } from "./ReactDOMCompnent";
+// 引入初始属性设置函数
+import { setInitialProperties } from "./ReactDOMComponent";
 
 /**
  * 判断是否需要设置文本内容
@@ -24,7 +25,6 @@ export function shouldSetTextContent(type, props) {
  * createTextInstance函数用于创建一个新的文本节点，其中的内容是传入的content参数。
  */
 export function createTextInstance(content) {
-  // console.log(content);
   return document.createTextNode(content);
 }
 
@@ -36,12 +36,8 @@ export function createTextInstance(content) {
  *
  * createInstance函数用于创建一个新的DOM元素，元素类型由传入的type参数指定。
  */
-export function createInstance(type, props, internalInstanceHandle) {
-  // console.log(type);
+export function createInstance(type) {
   const domElement = document.createElement(type);
-  // precacheFiberNode(internalInstanceHandle, domElement);
-  // updateFiberProps(domElement, props);
-  // console.log(domElement);
   return domElement;
 }
 
@@ -81,6 +77,7 @@ export function finalizeInitialChildren(domElement, type, props) {
 export function appendChild(parentInstance, child) {
   parentInstance.appendChild(child);
 }
+
 /**
  * 在指定子节点前插入新的子节点
  *

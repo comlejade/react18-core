@@ -1,12 +1,18 @@
-import { NoFlags } from "./ReactFiberFlags";
+// 导入React中的一些工作标签和标记
 import {
   HostComponent,
   HostRoot,
-  HostText,
   IndeterminateComponent,
+  HostText,
 } from "./ReactWorkTags";
+import { NoFlags } from "./ReactFiberFlags";
 
-// Fiber节点的构造函数
+/**
+ * 构造函数，用于创建一个新的Fiber节点
+ * @param {number} tag - fiber的类型，如函数组件、类组件、原生组件、根元素等
+ * @param {*} pendingProps - 新属性，等待处理或者说生效的属性
+ * @param {*} key - 唯一标识
+ */
 export function FiberNode(tag, pendingProps, key) {
   this.tag = tag;
   this.key = key;
@@ -25,17 +31,31 @@ export function FiberNode(tag, pendingProps, key) {
   this.index = 0;
 }
 
-// 创建一个新的Fiber 节点
+/**
+ * 用于创建新的Fiber节点
+ * @param {number} tag - fiber的类型
+ * @param {*} pendingProps - 新属性
+ * @param {*} key - 唯一标识
+ * @returns {FiberNode} 新的Fiber节点
+ */
 export function createFiber(tag, pendingProps, key) {
   return new FiberNode(tag, pendingProps, key);
 }
 
-// 创建HostRoot类型的Fiber
+/**
+ * 创建新的HostRoot类型的Fiber节点
+ * @returns {FiberNode} 新的HostRoot类型的Fiber节点
+ */
 export function createHostRootFiber() {
   return createFiber(HostRoot, null, null);
 }
 
-// 基于旧的Fiber节点和新的属性创建一个新的Fiber节点
+/**
+ * 基于旧的Fiber节点和新的属性创建一个新的Fiber节点
+ * @param {FiberNode} current - 旧的Fiber节点
+ * @param {*} pendingProps - 新的属性
+ * @returns {FiberNode} 新的Fiber节点
+ */
 export function createWorkInProgress(current, pendingProps) {
   let workInProgress = current.alternate;
   if (workInProgress === null) {
@@ -59,13 +79,23 @@ export function createWorkInProgress(current, pendingProps) {
   return workInProgress;
 }
 
-// 将虚拟DOM转成Fiber
+/**
+ * 从虚拟DOM创建新的Fiber节点
+ * @param {*} element - 虚拟DOM元素
+ * @returns {FiberNode} 新的Fiber节点
+ */
 export function createFiberFromElement(element) {
   const { type, key, props: pendingProps } = element;
   return createFiberFromTypeAndProps(type, key, pendingProps);
 }
 
-// 从类型和属性创建新的Fiber节点
+/**
+ * 从类型和属性创建新的Fiber节点
+ * @param {*} type - Fiber节点的类型
+ * @param {*} key - 唯一标识
+ * @param {*} pendingProps - 新的属性
+ * @returns {FiberNode} 新的Fiber节点
+ */
 function createFiberFromTypeAndProps(type, key, pendingProps) {
   let tag = IndeterminateComponent;
   if (typeof type === "string") {
@@ -76,7 +106,11 @@ function createFiberFromTypeAndProps(type, key, pendingProps) {
   return fiber;
 }
 
-// 将text节点转成文本类型的Fiber
+/**
+ * 创建一个新的文本类型的Fiber节点
+ * @param {*} content - 文本内容
+ * @returns {FiberNode} 新的文本类型的Fiber节点
+ */
 export function createFiberFromText(content) {
   return createFiber(HostText, content, null);
 }

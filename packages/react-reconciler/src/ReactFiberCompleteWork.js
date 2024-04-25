@@ -1,15 +1,46 @@
 import {
-  appendInitialChild,
-  createInstance,
   createTextInstance,
+  createInstance,
+  appendInitialChild,
   finalizeInitialChildren,
 } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 import { NoFlags } from "./ReactFiberFlags";
 import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 
+/**
+ * 为完成的fiber节点的父DOM节点添加所有子DOM节点
+ * @param {DOM} parent - 完成的fiber节点对应的真实DOM节点
+ * @param {Fiber} workInProgress - 已完成的Fiber节点
+ */
+function appendAllChildren(parent, workInProgress) {
+  let node = workInProgress.child;
+  while (node) {
+    if (node.tag === HostComponent || node.tag === HostText) {
+      appendInitialChild(parent, node.stateNode);
+    } else if (node.child !== null) {
+      node = node.child;
+      continue;
+    }
+    if (node === workInProgress) {
+      return;
+    }
+    while (node.sibling === null) {
+      if (node.return === null || node.return === workInProgress) {
+        return;
+      }
+      node = node.return;
+    }
+    node = node.sibling;
+  }
+}
+
+/**
+ * 完成一个Fiber节点
+ * @param {Fiber} current - 当前旧的Fiber节点
+ * @param {Fiber} workInProgress - 新建的Fiber节点
+ */
 export function completeWork(current, workInProgress) {
   const newProps = workInProgress.pendingProps;
-  // HostRoot 相当于 <div id="root"></div>
   switch (workInProgress.tag) {
     case HostRoot:
       bubbleProperties(workInProgress);
@@ -17,11 +48,9 @@ export function completeWork(current, workInProgress) {
     case HostComponent:
       const { type } = workInProgress;
       const instance = createInstance(type, newProps, workInProgress);
-      //   debugger;
       appendAllChildren(instance, workInProgress);
       workInProgress.stateNode = instance;
       finalizeInitialChildren(instance, type, newProps);
-
       bubbleProperties(workInProgress);
       break;
     case HostText:
@@ -32,45 +61,17 @@ export function completeWork(current, workInProgress) {
   }
 }
 
-// 将子节点的操作以及子节点的后代的操作都冒泡到父节点上
+/**
+ * 冒泡处理已完成Fiber节点的属性
+ * @param {Fiber} completedWork - 已完成的Fiber节点
+ */
 function bubbleProperties(completedWork) {
   let subtreeFlags = NoFlags;
   let child = completedWork.child;
-  // 记录所有子节点和子节点的子节点的操作，flags对应的是该fiber节点应该执行的操作
   while (child !== null) {
     subtreeFlags |= child.subtreeFlags;
     subtreeFlags |= child.flags;
     child = child.sibling;
   }
   completedWork.subtreeFlags = subtreeFlags;
-}
-
-function appendAllChildren(parent, workInProgress) {
-  let node = workInProgress.child;
-  // console.log(parent);
-  while (node) {
-    if (node.tag === HostComponent || node.tag === HostText) {
-      appendInitialChild(parent, node.stateNode);
-    } else if (node.child !== null) {
-      // 先遍历子节点，再遍历兄弟节点
-      // 深度遍历
-      node = node.child;
-      continue;
-    }
-
-    if (node === workInProgress) {
-      return;
-    }
-
-    // 下面的循环是归的过程，深入遍历到最深的子节点，然后往回找，
-    // 看父节点是否有兄弟节点，有就接着外层循环遍历兄弟节点，
-    // 没有就一直往上归
-    while (node.sibling === null) {
-      if (node.return === null || node.return === workInProgress) {
-        return;
-      }
-      node = node.return;
-    }
-    node = node.sibling;
-  }
 }

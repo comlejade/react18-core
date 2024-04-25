@@ -1,20 +1,9 @@
+// 引入CSS样式设置函数
 import { setValueForStyles } from "./CSSPropertyOperations";
+// 引入文本设置函数
+import setTextContent from "./setTextContent";
+// 引入DOM属性设置函数
 import { setValueForProperty } from "./DOMPropertyOperations";
-import { setTextContent } from "./setTextContent";
-
-/**
- * 设置初始属性
- *
- * @param {HTMLElement} domElement - 目标DOM元素
- * @param {string} tag - DOM元素的标签名
- * @param {Object} props - 需要设置的属性对象
- *
- * setInitialProperties函数是setInitialDOMProperties函数的外部接口，它直接调用setInitialDOMProperties函数，
- * 将传入的参数domElement, tag, props作为参数传递给setInitialDOMProperties函数。
- */
-export function setInitialProperties(domElement, tag, props) {
-  setInitialDOMProperties(tag, domElement, props);
-}
 
 /**
  * 设置初始DOM属性
@@ -45,4 +34,18 @@ function setInitialDOMProperties(tag, domElement, nextProps) {
       }
     }
   }
+}
+
+/**
+ * 设置初始属性
+ *
+ * @param {HTMLElement} domElement - 目标DOM元素
+ * @param {string} tag - DOM元素的标签名
+ * @param {Object} props - 需要设置的属性对象
+ *
+ * setInitialProperties函数是setInitialDOMProperties函数的外部接口，它直接调用setInitialDOMProperties函数，
+ * 将传入的参数domElement, tag, props作为参数传递给setInitialDOMProperties函数。
+ */
+export function setInitialProperties(domElement, tag, props) {
+  setInitialDOMProperties(tag, domElement, props);
 }
